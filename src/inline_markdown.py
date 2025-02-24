@@ -9,7 +9,7 @@ from textnode import TextNode, TextType
 #             new types
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     # String splitter helper function
-    def split_text_node(text_node, delimiter):
+    def split_node_text(text_node, delimiter):
         match delimiter:
             case "*":
                 # Possible better replacements with more uniqueness
@@ -17,10 +17,13 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 # 2. Add special unicode characters
                 # 3. Add a timestamp
                 tmp_txt = text_node.text
-                tmp_txt = tmp_txt.replace("**",
-                                          "_DBL_ASTERISK_MARKER_$$_")
-                return list(map(lambda txt: txt.replace("_DBL_ASTERISK_MARKER_$$_", "**"),
-                                tmp_txt.split(delimiter)))
+                replacement = "_DBL_ASTERISK_MARKER_$$_"
+
+                tmp_txt = tmp_txt.replace("**", replacement)
+                split_txt = tmp_txt.split(delimiter)
+                return list(map(lambda txt: txt.replace(replacement,
+                                                        "**"),
+                                split_txt))
             case _:
                 return text_node.text.split(delimiter)
     
@@ -30,7 +33,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(old_node)
             continue
 
-        split_txt = split_text_node(old_node, delimiter)
+        split_txt = split_node_text(old_node, delimiter)
         if not (len(split_txt) & 1): # if the length is even
             raise ValueError(f"{repr(old_node)} is missing"
                              f"matching delimeter: {delimiter}")
