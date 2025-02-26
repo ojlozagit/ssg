@@ -63,12 +63,37 @@ class TestInlineMarkdown(unittest.TestCase):
             "TextNode( , text, None), "
             "TextNode(word, bold, None)]"
         )
-
-
         
         with self.assertRaises(ValueError):
             err_nodes = split_nodes_delimiter([err_node], "`",
                                               TextType.CODE)
+
+    def test_extract_markdown(self):
+        img_txt = ("This is text with a ![rick roll]"
+                   "(https://i.imgur.com/aKaOqIh.gif) and "
+                   "![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
+        lnk_txt = ("This is text with a link [to boot dev]"
+                   "(https://www.boot.dev) and "
+                   "[to youtube](https://www.youtube.com/@bootdotdev)")
+
+        img_extract = extract_markdown_images(img_txt)
+        lnk_extract = extract_markdown_links(lnk_txt)
+        err_img_extract = extract_markdown_images(lnk_txt)
+        err_lnk_extract = extract_markdown_links(img_txt)
+
+        self.assertEqual(
+            img_extract,
+            [('rick roll', 'https://i.imgur.com/aKaOqIh.gif'),
+            ('obi wan', 'https://i.imgur.com/fJRm4Vk.jpeg')]
+        )
+        self.assertEqual(
+            lnk_extract,
+            [('to boot dev', 'https://www.boot.dev'),
+            ('to youtube', 'https://www.youtube.com/@bootdotdev')]
+        )
+
+        self.assertEqual(err_img_extract, [])
+        self.assertEqual(err_lnk_extract, [])
 
 if __name__ == "__main__":
     unittest.main()
