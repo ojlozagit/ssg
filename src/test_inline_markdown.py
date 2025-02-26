@@ -73,8 +73,8 @@ class TestInlineMarkdown(unittest.TestCase):
                    "(https://i.imgur.com/aKaOqIh.gif) and "
                    "![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
         lnk_txt = ("This is text with a link [to boot dev]"
-                   "(https://www.boot.dev) and "
-                   "[to youtube](https://www.youtube.com/@bootdotdev)")
+                   "(https://www.boot.dev) and [to youtube]"
+                   "(https://www.youtube.com/@bootdotdev)")
 
         img_extract = extract_markdown_images(img_txt)
         lnk_extract = extract_markdown_links(lnk_txt)
@@ -94,6 +94,79 @@ class TestInlineMarkdown(unittest.TestCase):
 
         self.assertEqual(err_img_extract, [])
         self.assertEqual(err_lnk_extract, [])
+
+    def test_split_images_and_links(self):
+        txt_img_node = TextNode(
+            "This is text with an ![image]"
+            "(https://i.imgur.com/zjjcJKZ.png) and another "
+            "![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        txt_lnk_node = TextNode(
+            "This is text with a [link]"
+            "(https://www.boot.dev) and another "
+            "[second link](https://www.youtube.com/@bootdotdev)",
+            TextType.TEXT,
+        )
+        txt_hyb_node = TextNode(
+            "This is text with an ![image]"
+            "(https://i.imgur.com/zjjcJKZ.png) and a "
+            "[link](https://www.youtube.com/@bootdotdev)",
+            TextType.TEXT,
+        )
+
+        new_img_nodes = split_nodes_image([txt_img_node])
+        new_lnk_nodes = split_nodes_link([txt_lnk_node])
+
+        hyb_img_nodes = split_nodes_image([txt_hyb_node])
+        hyb_lnk_nodes = split_nodes_link([txt_hyb_node])
+
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE,
+                         "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second image", TextType.IMAGE,
+                         "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_img_nodes,
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK,
+                         "https://www.boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second link", TextType.LINK,
+                         "https://www.youtube.com/@bootdotdev"
+                ),
+            ],
+            new_lnk_nodes,
+        )
+
+        # Ensuring each node splitter only splits its respective
+        # markdown syntax
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE,
+                         "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and a [link](https://www.youtube.com/@bootdotdev)",
+                         TextType.TEXT),
+            ],
+            hyb_img_nodes,
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and a ",
+                         TextType.TEXT),
+                TextNode("link", TextType.LINK,
+                         "https://www.youtube.com/@bootdotdev"),
+            ],
+            hyb_lnk_nodes,
+        )
 
 if __name__ == "__main__":
     unittest.main()

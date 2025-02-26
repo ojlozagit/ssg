@@ -69,3 +69,90 @@ def extract_markdown_images(text):
 '''
 def extract_markdown_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+
+        img_tups = extract_markdown_images(old_node.text)
+
+        # Create the split text for the TextNodes via a regex obj.
+        # Useful for compressing all of the different md_images into
+        # one common delimiter.
+        # Redundant due to the existnece of extract_markdown()
+        '''
+        md_img_pattern = re.compile(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)")
+        delimiter = "_MD_IMAGE_DELIMITER_$$_"
+        tmp_txt = re.sub(md_img_pattern, delimiter, old_node.text)
+        split_txt = tmp_txt.split(delimiter)
+        '''
+
+        # Create the split with the tuples from extract_markdown()
+        split_txt = [old_node.text]
+        for i in range(len(img_tups)):
+            alt_txt = img_tups[i][0]
+            url     = img_tups[i][1]
+            delimiter = "![" + alt_txt + "](" + url + ")"
+            new_split = split_txt.pop(i).split(delimiter, 1)
+            split_txt.extend(new_split)
+
+        first_node_txt = split_txt.pop(0)
+        if first_node_txt != "":
+            new_nodes.append(TextNode(first_node_txt, TextType.TEXT))
+
+        for i in range(len(img_tups)):
+            img = img_tups[i]
+            new_nodes.append(TextNode(img[0], TextType.IMAGE,
+                                      img[1]))
+            if split_txt[i] != "":
+                new_nodes.append(TextNode(split_txt[i],
+                                          TextType.TEXT))
+
+    return new_nodes
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+
+        lnk_tups = extract_markdown_links(old_node.text)
+
+        # Create the split text for the TextNodes via a regex obj.
+        # Useful for compressing all of the different md_links into
+        # one common delimiter.
+        # Redundant due to the existnece of extract_markdown()
+        '''
+        md_lnk_pattern = re.compile(r"(?<!!)\[([^\[\]]*)\]"
+                                    r"\(([^\(\)]*)\)")
+        delimiter = "_MD_LINK_DELIMITER_$$_"
+        tmp_txt = re.sub(md_lnk_pattern, delimiter, old_node.text)
+        split_txt = tmp_txt.split(delimiter)
+        '''
+
+        # Create the split with the tuples from extract_markdown()
+        split_txt = [old_node.text]
+        for i in range(len(lnk_tups)):
+            anchor = lnk_tups[i][0]
+            url    = lnk_tups[i][1]
+            delimiter = "[" + anchor + "](" + url + ")"
+            new_split = split_txt.pop(i).split(delimiter, 1)
+            split_txt.extend(new_split)
+
+        first_node_txt = split_txt.pop(0)
+        if first_node_txt != "":
+            new_nodes.append(TextNode(first_node_txt, TextType.TEXT))
+
+        for i in range(len(lnk_tups)):
+            lnk = lnk_tups[i]
+            new_nodes.append(TextNode(lnk[0], TextType.LINK,
+                                      lnk[1]))
+            if split_txt[i] != "":
+                new_nodes.append(TextNode(split_txt[i],
+                                          TextType.TEXT))
+
+    return new_nodes
