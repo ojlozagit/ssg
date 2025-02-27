@@ -113,21 +113,20 @@ def split_nodes_url(old_nodes, text_type=TextType.LINK):
 
         # Create the split with the tuples from extract_markdown()
         delim_start = "![" if text_type == TextType.IMAGE else "[" 
-        split_txt   = [old_node.text]
-        for i in range(len(md_tups)):
-            txt = md_tups[i][0]
-            url = md_tups[i][1]
-            delimiter = delim_start + txt + "](" + url + ")"
-            new_split = split_txt.pop(i).split(delimiter, 1)
-            split_txt.extend(new_split)
+        old_text    = old_node.text
+        for md in md_tups:
+            txt = md[0]
+            url = md[1]
+            delimiter = f"{delim_start}{txt}]({url})"
+            new_split = old_text.split(delimiter, 1)
             # Create the text nodes in same loop
-            if split_txt[i] != "":
-                new_nodes.append(TextNode(split_txt[i],
+            if new_split[0] != "":
+                new_nodes.append(TextNode(new_split[0],
                                           TextType.TEXT))
             new_nodes.append(TextNode(txt, text_type, url))
-        split_txt_end = split_txt.pop()
-        if split_txt_end != "":
-            new_nodes.append(TextNode(split_txt_end, TextType.TEXT))
+            old_text = new_split[1]
+        if old_text != "":
+            new_nodes.append(TextNode(old_text, TextType.TEXT))
 
     return new_nodes
 
