@@ -98,18 +98,14 @@ def split_nodes_image(old_nodes):
             delimiter = "![" + alt_txt + "](" + url + ")"
             new_split = split_txt.pop(i).split(delimiter, 1)
             split_txt.extend(new_split)
-
-        first_node_txt = split_txt.pop(0)
-        if first_node_txt != "":
-            new_nodes.append(TextNode(first_node_txt, TextType.TEXT))
-
-        for i in range(len(img_tups)):
-            img = img_tups[i]
-            new_nodes.append(TextNode(img[0], TextType.IMAGE,
-                                      img[1]))
+            # Create the text nodes in same loop
             if split_txt[i] != "":
                 new_nodes.append(TextNode(split_txt[i],
                                           TextType.TEXT))
+            new_nodes.append(TextNode(alt_txt, TextType.IMAGE, url))
+        split_txt_end = split_txt.pop()
+        if split_txt_end != "":
+            new_nodes.append(TextNode(split_txt_end, TextType.TEXT))
 
     return new_nodes
 
@@ -142,17 +138,13 @@ def split_nodes_link(old_nodes):
             delimiter = "[" + anchor + "](" + url + ")"
             new_split = split_txt.pop(i).split(delimiter, 1)
             split_txt.extend(new_split)
-
-        first_node_txt = split_txt.pop(0)
-        if first_node_txt != "":
-            new_nodes.append(TextNode(first_node_txt, TextType.TEXT))
-
-        for i in range(len(lnk_tups)):
-            lnk = lnk_tups[i]
-            new_nodes.append(TextNode(lnk[0], TextType.LINK,
-                                      lnk[1]))
+            # Create the text nodes in same loop
             if split_txt[i] != "":
                 new_nodes.append(TextNode(split_txt[i],
                                           TextType.TEXT))
+            new_nodes.append(TextNode(anchor, TextType.LINK, url))
+        split_txt_end = split_txt.pop()
+        if split_txt_end != "":
+            new_nodes.append(TextNode(split_txt_end, TextType.TEXT))
 
     return new_nodes
