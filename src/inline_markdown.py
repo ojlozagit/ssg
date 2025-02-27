@@ -70,81 +70,60 @@ def extract_markdown_images(text):
 def extract_markdown_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
-def split_nodes_image(old_nodes):
+# Worker function to be wrapped for url markdown -> TextNode
+# Currently defaults to TextNode.LINK
+'''
+@old_nodes: list of TextNodes
+@text_type: the TextType of the new url TextNodes 
+@return:    list of new TextNodes comprised of the old types and
+            new url types
+'''
+def split_nodes_url(old_nodes, text_type=TextType.LINK):
     new_nodes = []
     for old_node in old_nodes:
         if old_node.text_type != TextType.TEXT:
             new_nodes.append(old_node)
             continue
 
-        img_tups = extract_markdown_images(old_node.text)
-
-        # Create the split text for the TextNodes via a regex obj.
-        # Useful for compressing all of the different md_images into
-        # one common delimiter.
-        # Redundant due to the existnece of extract_markdown()
-        '''
-        md_img_pattern = re.compile(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)")
-        delimiter = "_MD_IMAGE_DELIMITER_$$_"
-        tmp_txt = re.sub(md_img_pattern, delimiter, old_node.text)
-        split_txt = tmp_txt.split(delimiter)
-        '''
-
-        # Create the split with the tuples from extract_markdown()
-        split_txt = [old_node.text]
-        for i in range(len(img_tups)):
-            alt_txt = img_tups[i][0]
-            url     = img_tups[i][1]
-            delimiter = "![" + alt_txt + "](" + url + ")"
-            new_split = split_txt.pop(i).split(delimiter, 1)
-            split_txt.extend(new_split)
-            # Create the text nodes in same loop
-            if split_txt[i] != "":
-                new_nodes.append(TextNode(split_txt[i],
-                                          TextType.TEXT))
-            new_nodes.append(TextNode(alt_txt, TextType.IMAGE, url))
-        split_txt_end = split_txt.pop()
-        if split_txt_end != "":
-            new_nodes.append(TextNode(split_txt_end, TextType.TEXT))
-
-    return new_nodes
-
-def split_nodes_link(old_nodes):
-    new_nodes = []
-    for old_node in old_nodes:
-        if old_node.text_type != TextType.TEXT:
-            new_nodes.append(old_node)
-            continue
-
-        lnk_tups = extract_markdown_links(old_node.text)
+        md_tups = (extract_markdown_images(old_node.text)
+                   if text_type == TextType.IMAGE
+              else extract_markdown_links(old_node.text)) 
 
         # Create the split text for the TextNodes via a regex obj.
         # Useful for compressing all of the different md_links into
         # one common delimiter.
         # Redundant due to the existnece of extract_markdown()
         '''
-        md_lnk_pattern = re.compile(r"(?<!!)\[([^\[\]]*)\]"
+        delim_start = "!" if text_type == TextType.IMAGE else "(?<!!)"
+        md_pattern = re.compile(r"(?<!!)\[([^\[\]]*)\]"
                                     r"\(([^\(\)]*)\)")
-        delimiter = "_MD_LINK_DELIMITER_$$_"
-        tmp_txt = re.sub(md_lnk_pattern, delimiter, old_node.text)
+        delimiter = "_MD_DELIMITER_$$_"
+        tmp_txt = re.sub(md_pattern, delimiter, old_node.text)
         split_txt = tmp_txt.split(delimiter)
         '''
 
         # Create the split with the tuples from extract_markdown()
-        split_txt = [old_node.text]
-        for i in range(len(lnk_tups)):
-            anchor = lnk_tups[i][0]
-            url    = lnk_tups[i][1]
-            delimiter = "[" + anchor + "](" + url + ")"
+        delim_start = "![" if text_type == TextType.IMAGE else "[" 
+        split_txt   = [old_node.text]
+        for i in range(len(md_tups)):
+            txt = md_tups[i][0]
+            url = md_tups[i][1]
+            delimiter = delim_start + txt + "](" + url + ")"
             new_split = split_txt.pop(i).split(delimiter, 1)
             split_txt.extend(new_split)
             # Create the text nodes in same loop
             if split_txt[i] != "":
                 new_nodes.append(TextNode(split_txt[i],
                                           TextType.TEXT))
-            new_nodes.append(TextNode(anchor, TextType.LINK, url))
+            new_nodes.append(TextNode(txt, text_type, url))
         split_txt_end = split_txt.pop()
         if split_txt_end != "":
             new_nodes.append(TextNode(split_txt_end, TextType.TEXT))
 
     return new_nodes
+
+def split_nodes_image(old_nodes):
+    return split_nodes_url(old_nodes, TextType.IMAGE)
+
+def split_nodes_link(old_nodes):
+    return split_nodes_url(old_nodes, TextType.LINK)
