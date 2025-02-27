@@ -168,5 +168,26 @@ class TestInlineMarkdown(unittest.TestCase):
             hyb_lnk_nodes,
         )
 
+    def test_text_to_textnodes(self):
+        text = "__This__ is **text** with *two* _italicized_ words and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        result = [
+            TextNode("This", TextType.BOLD),
+            TextNode(" is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with ", TextType.TEXT),
+            TextNode("two", TextType.ITALIC),
+            TextNode(" ", TextType.TEXT),
+            TextNode("italicized", TextType.ITALIC),
+            TextNode(" words and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE,
+                     "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+        ]
+
+        self.assertListEqual(text_to_textnodes(text), result)
+
 if __name__ == "__main__":
     unittest.main()

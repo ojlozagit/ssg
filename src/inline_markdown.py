@@ -27,6 +27,15 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 return list(map(lambda txt: txt.replace(replacement,
                                                         "**"),
                                 split_txt))
+            case "_":
+                tmp_txt = text_node.text
+                replacement = "-DBL-UNDERSCORE-MARKER-$$-"
+
+                tmp_txt = tmp_txt.replace("__", replacement)
+                split_txt = tmp_txt.split(delimiter)
+                return list(map(lambda txt: txt.replace(replacement,
+                                                        "__"),
+                                split_txt))
             case _:
                 return text_node.text.split(delimiter)
     
@@ -95,8 +104,8 @@ def split_nodes_url(old_nodes, text_type=TextType.LINK):
         # Redundant due to the existnece of extract_markdown()
         '''
         delim_start = "!" if text_type == TextType.IMAGE else "(?<!!)"
-        md_pattern = re.compile(r"(?<!!)\[([^\[\]]*)\]"
-                                    r"\(([^\(\)]*)\)")
+        md_pattern = re.compile(delim_start + r"\[([^\[\]]*)\]" +
+                                              r"\(([^\(\)]*)\)")
         delimiter = "_MD_DELIMITER_$$_"
         tmp_txt = re.sub(md_pattern, delimiter, old_node.text)
         split_txt = tmp_txt.split(delimiter)
@@ -127,3 +136,14 @@ def split_nodes_image(old_nodes):
 
 def split_nodes_link(old_nodes):
     return split_nodes_url(old_nodes, TextType.LINK)
+
+def text_to_textnodes(text):
+    textnodes = [TextNode(text, TextType.TEXT)]
+    textnodes = split_nodes_delimiter(textnodes, "*", TextType.ITALIC)
+    textnodes = split_nodes_delimiter(textnodes, "_", TextType.ITALIC)
+    textnodes = split_nodes_delimiter(textnodes, "**", TextType.BOLD)
+    textnodes = split_nodes_delimiter(textnodes, "__", TextType.BOLD)
+    textnodes = split_nodes_delimiter(textnodes, "`", TextType.CODE)
+    textnodes = split_nodes_link(textnodes)
+    textnodes = split_nodes_image(textnodes)
+    return textnodes
