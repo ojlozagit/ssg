@@ -16,28 +16,32 @@ def markdown_to_blocks(markdown):
 
 '''
 @markdown: single block of raw markdown text
+@return: associated block type of input block
 '''
 def block_to_block_type(markdown):
+    lines = markdown.split("\n")
+
     if markdown.startswith(("# ", "## ", "### ", "#### ", "##### ",
                             "###### ")):
         return BlockType.HEADING
-    if markdown.startswith("```") and markdown.endswith("```"):
+    if( len(lines) > 1
+    and markdown.startswith("```")
+    and markdown.endswith("```") ):
         return BlockType.CODE
     if markdown.startswith(">"):
+        for line in lines:
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH
         return BlockType.QUOTE
     if markdown.startswith("- "):
-        ul = markdown.split("\n")
-        for line in ul:
+        for line in lines:
             if not line.startswith("- "):
                 return BlockType.PARAGRAPH
-        return BlockType.UNORDERED_LIST
+        return BlockType.ULIST
     if markdown.startswith("1. "):
-        seq = 1
-        ol = markdown.split("\n")
-        for line in ol:
-            if not line.startswith(f"{seq}."):
+        for idx, line in enumerate(lines):
+            if not line.startswith(f"{idx + 1}. "):
                 return BlockType.PARAGRAPH
-            seq += 1
-        return BlockType.ORDERED_LIST
+        return BlockType.OLIST
 
     return BlockType.PARAGRAPH

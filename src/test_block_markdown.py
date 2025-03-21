@@ -28,13 +28,13 @@ This is the same paragraph on a new line
                          "code")
         self.assertEqual(BlockType.HEADING.value,
                          "heading")
-        self.assertEqual(BlockType.ORDERED_LIST.value,
+        self.assertEqual(BlockType.OLIST.value,
                          "ordered list")
         self.assertEqual(BlockType.PARAGRAPH.value,
                          "paragraph")
         self.assertEqual(BlockType.QUOTE.value,
                          "quote")
-        self.assertEqual(BlockType.UNORDERED_LIST.value,
+        self.assertEqual(BlockType.ULIST.value,
                          "unordered list")
 
     def test_block_to_block_type(self):
@@ -45,7 +45,7 @@ This is the same paragraph on a new line
         head_block4 = "#### heading 4"
         head_block5 = "##### heading 5"
         head_block6 = "###### heading 6"
-        code_block  = "```hello world```"
+        code_block  = "```if True:\n    hello world```"
         quot_block1 = ">no space quote"
         quot_block2 = "> space quote"
         ul_block    = "- This is a list\n- with items"
@@ -53,9 +53,8 @@ This is the same paragraph on a new line
 
         # Error variables
         head_err1 = "####### heading 7"
-        head_err2 = " ####### heading 7"
-        code_err1 = "```hello world"
-        code_err2 = "hello world```"
+        head_err2 = " ###### heading 6"
+        code_err  = "```if True:    hello world```"
         quot_err  = " >leading space quote"
         ul_err    = "- This is an accidental list\nof one item"
         ol_err    = "1. This is a bad\nordered list"
@@ -80,18 +79,16 @@ This is the same paragraph on a new line
         self.assertEqual(block_to_block_type(quot_block2),
                          BlockType.QUOTE)
         self.assertEqual(block_to_block_type(ul_block),
-                         BlockType.UNORDERED_LIST)
+                         BlockType.ULIST)
         self.assertEqual(block_to_block_type(ol_block),
-                         BlockType.ORDERED_LIST)
+                         BlockType.OLIST)
 
         # Error checks
         self.assertEqual(block_to_block_type(head_err1),
                          BlockType.PARAGRAPH)
         self.assertEqual(block_to_block_type(head_err2),
                          BlockType.PARAGRAPH)
-        self.assertEqual(block_to_block_type(code_err1),
-                         BlockType.PARAGRAPH)
-        self.assertEqual(block_to_block_type(code_err2),
+        self.assertEqual(block_to_block_type(code_err),
                          BlockType.PARAGRAPH)
         self.assertEqual(block_to_block_type(quot_err),
                          BlockType.PARAGRAPH)
