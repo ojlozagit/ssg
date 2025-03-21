@@ -122,6 +122,7 @@ class TestInlineMarkdown(unittest.TestCase):
         hyb_lnk_nodes = split_nodes_link([txt_hyb_node])
 
         self.assertListEqual(
+            new_img_nodes,
             [
                 TextNode("This is text with an ", TextType.TEXT),
                 TextNode("image", TextType.IMAGE,
@@ -131,9 +132,9 @@ class TestInlineMarkdown(unittest.TestCase):
                          "https://i.imgur.com/3elNhQu.png"
                 ),
             ],
-            new_img_nodes,
         )
         self.assertListEqual(
+            new_lnk_nodes,
             [
                 TextNode("This is text with a ", TextType.TEXT),
                 TextNode("link", TextType.LINK,
@@ -143,12 +144,12 @@ class TestInlineMarkdown(unittest.TestCase):
                          "https://www.youtube.com/@bootdotdev"
                 ),
             ],
-            new_lnk_nodes,
         )
 
         # Ensuring each node splitter only splits its respective
         # markdown syntax
         self.assertListEqual(
+            hyb_img_nodes,
             [
                 TextNode("This is text with an ", TextType.TEXT),
                 TextNode("image", TextType.IMAGE,
@@ -156,20 +157,23 @@ class TestInlineMarkdown(unittest.TestCase):
                 TextNode(" and a [link](https://www.youtube.com/@bootdotdev)",
                          TextType.TEXT),
             ],
-            hyb_img_nodes,
         )
         self.assertListEqual(
+            hyb_lnk_nodes,
             [
                 TextNode("This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and a ",
                          TextType.TEXT),
                 TextNode("link", TextType.LINK,
                          "https://www.youtube.com/@bootdotdev"),
             ],
-            hyb_lnk_nodes,
         )
 
     def test_text_to_textnodes(self):
-        text = "__This__ is **text** with *two* _italicized_ words and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        text = (
+            "__This__ is **text** with *two* _italicized_ words, a "
+            "`code block`, a [link](https://boot.dev), and an "
+            "![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg)"
+            )
         result = [
             TextNode("This", TextType.BOLD),
             TextNode(" is ", TextType.TEXT),
@@ -178,13 +182,13 @@ class TestInlineMarkdown(unittest.TestCase):
             TextNode("two", TextType.ITALIC),
             TextNode(" ", TextType.TEXT),
             TextNode("italicized", TextType.ITALIC),
-            TextNode(" words and a ", TextType.TEXT),
+            TextNode(" words, a ", TextType.TEXT),
             TextNode("code block", TextType.CODE),
-            TextNode(" and an ", TextType.TEXT),
+            TextNode(", a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+            TextNode(", and an ", TextType.TEXT),
             TextNode("obi wan image", TextType.IMAGE,
                      "https://i.imgur.com/fJRm4Vk.jpeg"),
-            TextNode(" and a ", TextType.TEXT),
-            TextNode("link", TextType.LINK, "https://boot.dev"),
         ]
 
         self.assertListEqual(text_to_textnodes(text), result)

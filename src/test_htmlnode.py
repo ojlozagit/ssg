@@ -36,7 +36,7 @@ class TestHTMLNode(unittest.TestCase):
 class TestLeafNode(unittest.TestCase):
     def test_init(self):
         with self.assertRaises(TypeError):
-            node = LeafNode("nval")
+            node = LeafNode("tag_no-val")
 
         with self.assertRaises(TypeError):
             node = LeafNode(value="No tag")
@@ -85,7 +85,7 @@ class TestLeafNode(unittest.TestCase):
 class TestParentNode(unittest.TestCase):
     def test_init(self):
         with self.assertRaises(TypeError):
-            node = ParentNode("nchild")
+            node = ParentNode("tag_no-child")
 
         with self.assertRaises(TypeError):
             node = ParentNode(children=HTMLNode("p",
